@@ -6,39 +6,47 @@ def main():
     parser.add_argument("fasta_file")
     args = parser.parse_args()
 
-    id, gc_content = get_highest_gc_content(args.fasta_file)
+    id_sequence_dict = parse_fasta_file(args.fasta_file)
+    id, gc_content = get_highest_gc_content(id_sequence_dict)
     print(id)
     print(gc_content)
 
 
-def get_highest_gc_content(fasta_file):
-    gc_content_dict = {}
+def parse_fasta_file(fasta_file):
 
-    # parse the FASTA file
+    id_sequence_dict = {}
+
     with open(fasta_file, "r") as fasta:
+        id = ""
         sequence = ""
 
         for line in fasta:
-
-            # Save id
             if line[0] == ">":
                 if sequence:
-                    gc_content = calculate_gc_content(sequence)
-                    gc_content_dict[gc_content] = id
-                    print(gc_content)
+                    id_sequence_dict[id] = sequence
 
                 id = line[1:].strip()
                 sequence = ""
 
-            # Calculate gc-content, save in dict
             else:
                 sequence += line.strip()
 
+        id_sequence_dict[id] = sequence
+
+    return id_sequence_dict
+
+
+def get_highest_gc_content(id_sequence_dict: dict):
+    gc_content_dict = {}
+
+    # calculate all gc-contents
+    for id, sequence in id_sequence_dict.items():
         gc_content = calculate_gc_content(sequence)
         gc_content_dict[gc_content] = id
-        print(gc_content)
 
+    # find the highest gc-content sequence
     max_gc_content = max(gc_content_dict.keys())
+
     return gc_content_dict[max_gc_content], max_gc_content
 
 
